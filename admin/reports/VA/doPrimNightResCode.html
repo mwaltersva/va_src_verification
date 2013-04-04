@@ -1,0 +1,204 @@
+~[if#pageaction.~[gpv:action]#getresults]
+<!DOCTYPE html>
+<html>
+<head>
+<!--[CRM BEGIN]-->
+<title>VA SRC Primary Nighttime Residence Code Validation</title>
+<meta name="author" content="Matt Walters" />
+<meta name="description" content="Displays school level counts of students with a Primary Nighttime Residence Code" />
+<meta name="version" content="1" />
+<meta name="reportname" content="Primary Nighttime Residence Code Validation" />
+<meta name="districtreport" />
+<!--[CRM END]-->
+<link href="/images/css/screen.css" rel="stylesheet" media="screen">
+<link href="/images/css/print.css" rel="stylesheet" media="print">
+<link rel="stylesheet" href="/images/css/theme/crm-css/jquery-ui.custom.css" type="text/css">
+<link rel="stylesheet" href="/admin/includes/template/reports-common.css" type="text/css" media="all">
+<link rel="stylesheet" href="/admin/includes/template/reports-printable.css" type="text/css" media="print">
+<style type="text/css">
+.stuitalic {
+font-style: italic;
+border-style:solid;
+border-width:1px;
+}
+.studentrow {
+border-style:solid;
+border-width:1px;
+}
+.headerrow {
+border-style:solid;
+border-width:2px;
+} 
+.avgrow {
+border-style:solid;
+border-width:2px;
+} 
+</style>
+~[x:insertfile;/scripts/custom-jquery-1.0.html]
+~[x:insertfile;/scripts/custom-datatables-1.0.html]
+~[x:insertfile;/admin/includes/template/reports-commonscripts.html]
+<script type="text/javascript">
+(function($){
+	var reportdataURL ='/~[self]';
+	var pageseperator ='<hr class="noprint pageseperator" /><div class="pbreak"><span style="display: none">&nbsp;</span></div>';
+	var totalreports = 0;
+
+	$(function(){
+		$('#params_container').accordion({collapsible:true,autoHeight:false});
+		$('input:submit').button({label:"Submit"});
+		$('.datepicker').datepicker({
+			dateFormat: convertOracleDF('~[gpv:dateformat]')
+		});
+		$('#ui-datepicker-div').hide();//Bug in jQuery UI 1.8.9 causes datepicker div to be visible upon creation
+		$('#params').submit(function(){
+			clearError();
+			$("#reportresult").empty();
+			$("#reportresult").html('<span id="loader">Loading <img src="' +$("#busyimage").attr("src")+'" /></span>');
+			var settings = $('#params').serializeObject();
+			$.get(reportdataURL, settings
+			)
+			.done(processReportResults)
+			.fail(function(xhr, status, error){
+				$('#loader').hide();
+				displayError("Report failed to load. Status Message: " +status);
+			});
+			return false; //override regular form submission
+		});
+	});//end jquery.ready
+	  
+	function processReportResults(data){
+		$('#reportresult').html(data);
+		$('#reportresult table').addClass('display').dataTable({
+			"bPaginate": false,
+			"bFilter": false,
+			"bJQueryUI": true,
+			"sDom": 'T<"H"fr>t<"F"ip>',
+			"oTableTools": {
+				"sSwfPath":"/scripts/tabletools/swf/copy_cvs_xls_pdf.swf"
+			},
+		});
+	}
+	function displayError(msg){
+		$('#error_container').html('<div id="alertmsg" style="padding: 0pt 0.7em;" class="ui-state-error ui-corner-all"><p><span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span><strong>Alert: </strong>'+msg+'</p></div>').show();
+	}
+	function clearError(){
+		$('#error_container').empty().hide();
+	}
+})(jQuery);
+</script>
+~[wc:commonscripts]
+</head>
+<body>
+~[x:insertfile;/admin/includes/template/admin_reportheader_start.html]
+PrimNight ResCode Validation
+~[x:insertfile;/admin/includes/template/admin_reportheader_end.html]
+
+<!-- Begin content -->
+<img id="busyimage" style="display:none;" src="/images/busy_blue.gif" />
+	
+<div id="reportcontent" class="rounded_block">
+<h2 class="noprint">VA SRC Primary Nightime Residence Code Validation</h2>
+<p>Usual reporting dates:</p>
+
+<!-- Begin report parameters-->
+<form class="noprint" name="params" id="params" method="GET" action="#" target="_blank">
+<div id="params_container" class="noprint">
+	<h3><a href="#">Report Parameters</a></h3>
+	<div id="paramsinner_container">
+		<table>
+			<tr>
+				<td>From Date:</td><td><input type="text" name="fromDate" class="datepicker" value="" /></td>
+			</tr>
+			<tr>
+				<td>To Date:</td><td><input type="text" name="toDate" class="datepicker" value="" /></td></tr>
+			</tr>
+		</table>
+		<p>Usual Reporting dates:</p>
+		<table>
+			<tr class="headerrow">
+				<th>Report Term</th>
+				<th>From Date</th>
+				<th>To Date</th>
+			</tr>
+			<tr>
+				<td>Fall</td><td>July 1st</td><td>October 1st</td>
+			</tr><tr>
+				<td>Dec-1</td><td>July 1st</td><td>December 1st</td>
+			</tr><tr>
+				<td>Spring</td><td>July 1st</td><td>March 31st</td>
+			</tr><tr>
+				<td>EOY</td><td>July 1st</td><td>Last day of School</td>
+			</tr>
+		</table>
+		<input type="hidden" name="dothisfor" value="selected" />
+		<input type="hidden" name="action" value="getresults" />
+		<input type="hidden" name="dateformat" value="~[gpv:dateformat]" />
+		<input value="Submit" type="submit" />
+	</div>
+</div>
+</form>
+<!-- End report parameters-->
+<div id="error_container"></div>
+<div id="reportresult" class="rounded_block">Waiting for report parameters.</div>
+
+</div>
+
+<!-- end content -->
+~[x:insertfile;/admin/includes/template/pds_copyright_footer.html]
+</body>
+</html>
+[else#pageaction]
+<table border="1" cellspacing="0" cellpadding="4" class="tablesorter" id="tablesorter">
+<thead> 
+	<tr>
+		<th>School</th>
+		<th>Unsheltered</th>
+		<th>Shelter</th>
+		<th>Doubled-Up</th>
+		<th>Hotel/Motel</th>
+	</tr>
+</thead>
+<tbody>
+	~[tlist_sql;
+		SELECT
+		  *
+		FROM (
+		  SELECT
+			schl.abbreviation,
+			decode(
+			  to_number(ps_customfields.getstudentscf(s.id, 'va_primnight_rescode')),
+			  1,'Unsheltered',
+			  2,'Shelter',
+			  3,'DoubledUp',
+			  4,'HotelMotel'
+			) PrimNightCode
+		  FROM students s
+		  JOIN (
+			SELECT
+			  studentid
+			FROM ps_enrollment_all
+			WHERE
+			  entrydate <> exitdate AND
+			  entrydate <= to_date('~[gpv:toDate]', 'MM/DD/YYYY') AND
+			  exitdate >= to_date('~[gpv:fromDate]', 'MM/DD/YYYY')
+			GROUP BY studentid
+			) enr ON enr.studentid = s.id
+		  JOIN schools schl ON schl.school_number = NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+		  WHERE
+			ps_customfields.getstudentscf(s.id, 'va_primnight_rescode') IS NOT NULL
+		) PIVOT (
+		  count(PrimNightCode)
+		  FOR PrimNightCode IN ('Unsheltered','Shelter','DoubledUp','HotelMotel')
+		) 
+	;nonemessage=<tr><td>No results. Did you enter a date range?</td><td></td><td></td><td></td><td></td></tr>]
+	<tr>
+		<td>~(abbreviation)</td>
+		<td>~(Unsheltered)</td>
+		<td>~(Shelter)</td>
+		<td>~(DoubledUp)</td>
+		<td>~(HotelMotel)</td>
+	</tr>
+	[/tlist_sql]
+</tbody>
+</table>
+[/if#pageaction]
